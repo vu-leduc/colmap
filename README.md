@@ -82,6 +82,23 @@ sudo apt-get install \
     libceres-dev
 ```
 
+To compile with `CUDA support`, install the following packages:
+```bash
+sudo apt-get install -y \
+    nvidia-cuda-toolkit \
+    nvidia-cuda-toolkit-gcc
+```
+
+Under Ubuntu 22.04, there is a problem when compiling with Ubuntu’s default CUDA package and GCC, and you must compile against GCC 10:
+
+```bash
+sudo apt-get install gcc-10 g++-10
+export CC=/usr/bin/gcc-10
+export CXX=/usr/bin/g++-10
+export CUDAHOSTCXX=/usr/bin/g++-10
+# ... and then run CMake against COLMAP's sources.
+```
+
 Configure and compile COLMAP:
 ```bash
 git clone https://github.com/colmap/colmap.git
@@ -93,6 +110,26 @@ cmake .. -GNinja -DCMAKE_CUDA_ARCHITECTURES=native
 ninja
 sudo ninja install
 ```
+
+## Issues that may occur
+While running cmake, you may encouter `Compilation error ptxas fatal : Value 'sm_30' is not defined for option 'gpu-name'`. In such the case, you can resolve by `sudo apt remove nvidia-cuda-toolkit`. This issue is due to the fact that you might have an old installation of nvidia-cuda-toolkit installed via apt-get (like me).
+
+While  running `ninja` command, you might also get some errors like:
+```bash
+ -ldl && :
+ /usr/bin/ld: /usr/lib/x86_64-linux-gnu/libfreeimage.so: undefined reference to `TIFFFieldTag@LIBTIFF_4.0'
+ /usr/bin/ld: /usr/lib/x86_64-linux-gnu/libfreeimage.so: undefined reference to `TIFFFieldName@LIBTIFF_4.0'
+ /usr/bin/ld: /usr/lib/x86_64-linux-gnu/libfreeimage.so: undefined reference to `TIFFFieldReadCount@LIBTIFF_4.0'
+ /usr/bin/ld: /usr/lib/x86_64-linux-gnu/libfreeimage.so: undefined reference to `TIFFFieldPassCount@LIBTIFF_4.0'
+ /usr/bin/ld: /usr/lib/x86_64-linux-gnu/libfreeimage.so: undefined reference to `TIFFFieldDataType@LIBTIFF_4.0'
+ /usr/bin/ld: /usr/lib/x86_64-linux-gnu/libfreeimage.so: undefined reference to `_TIFFDataSize@LIBTIFF_4.0'
+ /usr/bin/ld: /usr/lib/libceres.so.1.14.0: undefined reference to `google::kLogSiteUninitialized'
+ collect2: error: ld returned 1 exit status
+ ninja: build stopped: subcommand failed.
+```
+
+To resolve this problem, if you're using conda,  you can run `conda uninstall libtiff`
+
 Documentation
 -------------
 
